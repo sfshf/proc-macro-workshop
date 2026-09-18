@@ -2,30 +2,28 @@ use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{format_ident, quote};
 use syn::{
-    parse_macro_input,
-    spanned::Spanned,
-    Data, DeriveInput, Fields, GenericArgument, Ident, PathArguments,
-    Type::{self, Path},
+    parse_macro_input, Data, DeriveInput, Fields, GenericArgument, Ident, PathArguments,
+    Type::{self},
 };
 
 #[proc_macro_derive(Builder, attributes(builder))]
 pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    let name = &input.ident;
-    let builder_name = format_ident!("{}Builder", name);
+    let ident = &input.ident;
+    let builder_name = format_ident!("{}Builder", ident);
     let mut builder_fields: Vec<proc_macro2::TokenStream> = Vec::new();
     let mut builder_fields_inits: Vec<proc_macro2::TokenStream> = Vec::new();
     let mut builder_methods: Vec<proc_macro2::TokenStream> = Vec::new();
     let mut build_fields: Vec<proc_macro2::TokenStream> = Vec::new();
     match &input.data {
-        Data::Union(data) => {
+        Data::Union(_) => {
             unimplemented!()
         }
-        Data::Enum(data) => {
+        Data::Enum(_) => {
             unimplemented!()
         }
         Data::Struct(data) => match &data.fields {
-            Fields::Unnamed(fields) => {
+            Fields::Unnamed(_) => {
                 unimplemented!()
             }
             Fields::Unit => {
@@ -109,7 +107,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         pub struct #builder_name {
             #(#builder_fields)*
         }
-        impl #name {
+        impl #ident {
             pub fn builder() -> #builder_name {
                 #builder_name {
                     #(#builder_fields_inits)*
@@ -120,8 +118,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
             #(#builder_methods)*
 
-            pub fn build(&mut self) -> ::std::result::Result<#name, ::std::boxed::Box<dyn ::std::error::Error>> {
-                ::std::result::Result::Ok(#name {
+            pub fn build(&mut self) -> ::std::result::Result<#ident, ::std::boxed::Box<dyn ::std::error::Error>> {
+                ::std::result::Result::Ok(#ident {
                     #(#build_fields)*
                 })
             }
