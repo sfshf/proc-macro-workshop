@@ -12,22 +12,6 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let ident = &input.ident;
     let name = ident.to_string();
-    // generic types
-    let mut generics = input.generics.clone();
-    for param in &mut generics.params {
-        match param {
-            GenericParam::Lifetime(_) => {
-                unimplemented!()
-            }
-            GenericParam::Const(_) => {
-                unimplemented!()
-            }
-            GenericParam::Type(type_param) => {
-                type_param.bounds.push(syn::parse_quote!(std::fmt::Debug));
-            }
-        }
-    }
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let mut debug_fields: Vec<proc_macro2::TokenStream> = Vec::new();
     // input data type
     match &input.data {
@@ -64,6 +48,23 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         },
     }
+
+    // generic types
+    let mut generics = input.generics.clone();
+    for param in &mut generics.params {
+        match param {
+            GenericParam::Lifetime(_) => {
+                unimplemented!()
+            }
+            GenericParam::Const(_) => {
+                unimplemented!()
+            }
+            GenericParam::Type(ty) => {
+                ty.bounds.push(syn::parse_quote!(::std::fmt::Debug));
+            }
+        }
+    }
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
     let expanded = quote! {
         impl #impl_generics ::std::fmt::Debug for #ident #ty_generics #where_clause {
@@ -168,6 +169,7 @@ fn type_mentions_param(ty: &Type, param: &syn::Ident) -> bool {
         _ => false,
     }
 }
+
 fn is_phantom_data(ty: &Type, param: &syn::Ident) -> bool {
     let Type::Path(type_path) = ty else {
         return false;
